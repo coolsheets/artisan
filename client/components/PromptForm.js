@@ -1,5 +1,62 @@
 import { useState } from 'react';
 
+// Function to recommend AI models based on prompt content
+const getAIModelRecommendation = (prompt) => {
+  const lowerPrompt = prompt.toLowerCase();
+  
+  // Code-related tasks
+  if (lowerPrompt.includes('code') || lowerPrompt.includes('programming') || 
+      lowerPrompt.includes('debug') || lowerPrompt.includes('algorithm') ||
+      lowerPrompt.includes('function') || lowerPrompt.includes('script') ||
+      lowerPrompt.includes('api') || lowerPrompt.includes('database')) {
+    return {
+      primary: 'Claude 3.5 Sonnet',
+      secondary: 'GPT-4',
+      reason: 'Excellent for code generation, debugging, and technical documentation'
+    };
+  }
+  
+  // Creative writing tasks
+  if (lowerPrompt.includes('write') || lowerPrompt.includes('story') || 
+      lowerPrompt.includes('creative') || lowerPrompt.includes('article') ||
+      lowerPrompt.includes('content') || lowerPrompt.includes('blog')) {
+    return {
+      primary: 'GPT-4',
+      secondary: 'Claude 3.5 Sonnet',
+      reason: 'Superior creative writing and content generation capabilities'
+    };
+  }
+  
+  // Analysis and reasoning tasks
+  if (lowerPrompt.includes('analyze') || lowerPrompt.includes('research') || 
+      lowerPrompt.includes('explain') || lowerPrompt.includes('compare') ||
+      lowerPrompt.includes('evaluate') || lowerPrompt.includes('strategy')) {
+    return {
+      primary: 'Claude 3.5 Sonnet',
+      secondary: 'GPT-4',
+      reason: 'Excellent analytical and reasoning capabilities with nuanced understanding'
+    };
+  }
+  
+  // Math and data tasks
+  if (lowerPrompt.includes('math') || lowerPrompt.includes('calculate') || 
+      lowerPrompt.includes('data') || lowerPrompt.includes('statistics') ||
+      lowerPrompt.includes('formula') || lowerPrompt.includes('equation')) {
+    return {
+      primary: 'GPT-4',
+      secondary: 'Claude 3.5 Sonnet',
+      reason: 'Strong mathematical reasoning and data analysis capabilities'
+    };
+  }
+  
+  // Default recommendation
+  return {
+    primary: 'Claude 3.5 Sonnet',
+    secondary: 'GPT-4',
+    reason: 'Balanced performance across most tasks with excellent instruction following'
+  };
+};
+
 export default function PromptForm({ onNewPrompt, onClearAll }) {
   const [input, setInput] = useState('');
   const [optimized, setOptimized] = useState('');
@@ -63,6 +120,9 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
     }
   };
 
+  // Get AI model recommendation based on the input prompt
+  const aiModelRecommendation = getAIModelRecommendation(input);
+
   return (
     <div style={{ width: '100%' }}>
       <textarea 
@@ -87,7 +147,7 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
         justifyContent: 'space-between',
         alignItems: 'center',
         margin: '15px 0',
-        gap: '10px',
+        gap: '15px',
         flexWrap: 'wrap'
       }}>
         <button 
@@ -104,10 +164,11 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
             opacity: loading ? 0.6 : 1,
             fontWeight: '500',
             minHeight: '44px',
-            flex: '1 1 auto'
+            flex: '1 1 0',
+            minWidth: '120px'
           }}
         >
-          {loading ? 'Processing...' : 'Generate & Optimize'}
+          {loading ? 'Processing...' : 'Generate'}
         </button>
         <button 
           onClick={clearAll} 
@@ -115,7 +176,7 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
           style={{ 
             padding: 'clamp(8px, 1.5vw, 12px) clamp(16px, 3vw, 24px)',
             fontSize: 'clamp(14px, 2.5vw, 16px)',
-            backgroundColor: '#000000',
+            backgroundColor: '#6c757d',
             color: 'white', 
             border: 'none', 
             borderRadius: '6px', 
@@ -123,10 +184,11 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
             opacity: loading ? 0.6 : 1,
             fontWeight: '500',
             minHeight: '44px',
-            flexShrink: 0
+            flex: '1 1 0',
+            minWidth: '120px'
           }}
         >
-          Clear All
+          Clear
         </button>
       </div>
       
@@ -206,6 +268,83 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
               </li>
             ))}
           </ul>
+        </div>
+      )}
+      
+      {/* AI Model Recommendation and Usage Instructions */}
+      {optimized && (
+        <div style={{
+          margin: '20px 0',
+          padding: 'clamp(12px, 2.5vw, 18px)',
+          backgroundColor: '#fff3cd',
+          border: '2px solid #ffeaa7',
+          borderRadius: '10px',
+          borderLeft: '6px solid #f39c12'
+        }}>
+          <h3 style={{
+            margin: '0 0 15px 0',
+            fontSize: 'clamp(16px, 3vw, 18px)',
+            color: '#856404',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span>💡</span> How to Use These Prompts
+          </h3>
+          
+          <div style={{
+            marginBottom: '20px',
+            fontSize: 'clamp(14px, 2.5vw, 16px)',
+            lineHeight: '1.6',
+            color: '#856404'
+          }}>
+            <p style={{ margin: '0 0 12px 0' }}>
+              <strong>📋 Copy the optimized prompt</strong> for single-step tasks, or use the 
+              <strong> atomized prompts sequentially</strong> for complex multi-step processes.
+            </p>
+            <p style={{ margin: '0 0 12px 0' }}>
+              <strong>🔄 For atomized prompts:</strong> Send each step one at a time, wait for completion, 
+              then proceed to the next step for best results.
+            </p>
+          </div>
+
+          {(() => {
+            const recommendation = getAIModelRecommendation(input);
+            return (
+              <div style={{
+                backgroundColor: '#fff',
+                padding: 'clamp(10px, 2vw, 15px)',
+                borderRadius: '8px',
+                border: '1px solid #ffeaa7'
+              }}>
+                <h4 style={{
+                  margin: '0 0 10px 0',
+                  fontSize: 'clamp(15px, 2.8vw, 17px)',
+                  color: '#856404',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <span>🤖</span> Recommended AI Models
+                </h4>
+                <div style={{
+                  fontSize: 'clamp(13px, 2.3vw, 15px)',
+                  lineHeight: '1.5',
+                  color: '#6c757d'
+                }}>
+                  <p style={{ margin: '0 0 8px 0' }}>
+                    <strong style={{ color: '#007bff' }}>Primary: {recommendation.primary}</strong>
+                    {recommendation.secondary && (
+                      <span> • <strong style={{ color: '#28a745' }}>Alternative: {recommendation.secondary}</strong></span>
+                    )}
+                  </p>
+                  <p style={{ margin: '0', fontStyle: 'italic' }}>
+                    {recommendation.reason}
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>

@@ -63,6 +63,8 @@ describe('PromptForm Component', () => {
       expect(screen.getByText('Optimized Prompt:')).toBeInTheDocument();
       expect(screen.getByText('Test optimized prompt')).toBeInTheDocument();
       expect(screen.getByText('Atomized Prompts:')).toBeInTheDocument();
+      expect(screen.getByText('💡 How to Use These Prompts')).toBeInTheDocument();
+      expect(screen.getByText('🤖 Recommended AI Models')).toBeInTheDocument();
     });
 
     expect(mockOnNewPrompt).toHaveBeenCalledWith({
@@ -122,5 +124,33 @@ describe('PromptForm Component', () => {
     expect(submitButton).toBeDisabled();
     expect(clearButton).toBeDisabled();
     expect(screen.getByText('Processing...')).toBeInTheDocument();
+  });
+
+  it('shows appropriate AI model recommendations based on prompt content', async () => {
+    const user = userEvent.setup();
+    
+    // Mock successful API responses
+    fetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ optimized: 'Write a JavaScript function' })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ atomized: ['Step 1: Define function'] })
+      });
+
+    render(<PromptForm onNewPrompt={mockOnNewPrompt} onClearAll={mockOnClearAll} />);
+    
+    const textarea = screen.getByPlaceholderText('Describe your project/problem...');
+    const submitButton = screen.getByRole('button', { name: /generate & optimize/i });
+    
+    await user.type(textarea, 'Help me write code for a JavaScript function');
+    await user.click(submitButton);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Primary: Claude 3.5 Sonnet')).toBeInTheDocument();
+      expect(screen.getByText(/code generation/i)).toBeInTheDocument();
+    });
   });
 });
