@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function PromptForm({ onNewPrompt }) {
+export default function PromptForm({ onNewPrompt, onClearAll }) {
   const [input, setInput] = useState('');
   const [optimized, setOptimized] = useState('');
   const [atomized, setAtomized] = useState([]);
@@ -53,6 +53,16 @@ export default function PromptForm({ onNewPrompt }) {
     }
   };
 
+  const clearAll = () => {
+    setInput('');
+    setOptimized('');
+    setAtomized([]);
+    setError('');
+    if (onClearAll) {
+      onClearAll();
+    }
+  };
+
   return (
     <div>
       <textarea 
@@ -63,8 +73,20 @@ export default function PromptForm({ onNewPrompt }) {
         placeholder="Describe your project/problem..." 
       />
       <br />
-      <button onClick={handleOptimize} disabled={loading}>
-        {loading ? 'Processing...' : 'Generate & Optimize'}
+      <div style={{ margin: '10px 0' }}>
+        <button onClick={handleOptimize} disabled={loading}>
+          {loading ? 'Processing...' : 'Generate & Optimize'}
+        </button>
+        <button 
+          onClick={clearAll} 
+          disabled={loading}
+          style={{ marginLeft: '10px', backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}
+        >
+          Clear All
+        </button>
+      </div>
+      <button onClick={clearAll} style={{ marginLeft: '10px' }}>
+        Clear
       </button>
       
       {error && (
