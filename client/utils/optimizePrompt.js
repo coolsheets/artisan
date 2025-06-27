@@ -1,4 +1,6 @@
 export function optimizePrompt(prompt) {
+  if (!prompt || typeof prompt !== 'string') return '';
+  
   // Simple demo logic, expand as needed
   return prompt
     .replace(/Please\s+/i, '')
