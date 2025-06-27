@@ -64,48 +64,147 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
   };
 
   return (
-    <div>
+    <div style={{ width: '100%' }}>
       <textarea 
         value={input} 
         onChange={e => setInput(e.target.value)} 
-        rows={4} 
-        cols={60} 
+        rows={4}
         placeholder="Describe your project/problem..." 
+        style={{
+          width: '100%',
+          boxSizing: 'border-box',
+          padding: 'clamp(8px, 1.5vw, 12px)',
+          fontSize: 'clamp(14px, 2.5vw, 16px)',
+          border: '1px solid #ccc',
+          borderRadius: '8px',
+          resize: 'vertical',
+          fontFamily: 'inherit',
+          lineHeight: '1.4'
+        }}
       />
-      <br />
-      <div style={{ margin: '10px 0' }}>
-        <button onClick={handleOptimize} disabled={loading}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        margin: '15px 0',
+        gap: '10px',
+        flexWrap: 'wrap'
+      }}>
+        <button 
+          onClick={handleOptimize} 
+          disabled={loading}
+          style={{
+            padding: 'clamp(8px, 1.5vw, 12px) clamp(16px, 3vw, 24px)',
+            fontSize: 'clamp(14px, 2.5vw, 16px)',
+            backgroundColor: '#007bff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            opacity: loading ? 0.6 : 1,
+            fontWeight: '500',
+            minHeight: '44px',
+            flex: '1 1 auto'
+          }}
+        >
           {loading ? 'Processing...' : 'Generate & Optimize'}
         </button>
         <button 
           onClick={clearAll} 
           disabled={loading}
-          style={{ marginLeft: '10px', backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}
+          style={{ 
+            padding: 'clamp(8px, 1.5vw, 12px) clamp(16px, 3vw, 24px)',
+            fontSize: 'clamp(14px, 2.5vw, 16px)',
+            backgroundColor: '#000000',
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '6px', 
+            cursor: loading ? 'not-allowed' : 'pointer',
+            opacity: loading ? 0.6 : 1,
+            fontWeight: '500',
+            minHeight: '44px',
+            flexShrink: 0
+          }}
         >
           Clear All
         </button>
       </div>
-      <button onClick={clearAll} style={{ marginLeft: '10px' }}>
-        Clear
-      </button>
       
       {error && (
-        <div style={{ color: 'red', margin: '10px 0' }}>
+        <div style={{ 
+          color: '#dc3545', 
+          margin: '15px 0',
+          padding: 'clamp(10px, 2vw, 15px)',
+          backgroundColor: '#f8d7da',
+          border: '1px solid #f5c6cb',
+          borderRadius: '8px',
+          fontSize: 'clamp(14px, 2.5vw, 16px)'
+        }}>
           <strong>Error:</strong> {error}
         </div>
       )}
       
       {optimized && (
-        <div>
-          <h3>Optimized Prompt:</h3>
-          <pre>{optimized}</pre>
+        <div style={{
+          margin: '20px 0',
+          padding: 'clamp(10px, 2vw, 15px)',
+          backgroundColor: '#d4edda',
+          border: '1px solid #c3e6cb',
+          borderRadius: '8px'
+        }}>
+          <h3 style={{
+            margin: '0 0 10px 0',
+            fontSize: 'clamp(16px, 3vw, 18px)',
+            color: '#155724'
+          }}>
+            Optimized Prompt:
+          </h3>
+          <pre style={{
+            margin: 0,
+            padding: 'clamp(8px, 1.5vw, 12px)',
+            backgroundColor: '#ffffff',
+            border: '1px solid #c3e6cb',
+            borderRadius: '4px',
+            fontSize: 'clamp(13px, 2.5vw, 14px)',
+            lineHeight: '1.4',
+            whiteSpace: 'pre-wrap',
+            wordWrap: 'break-word',
+            overflow: 'auto'
+          }}>
+            {optimized}
+          </pre>
         </div>
       )}
+      
       {atomized.length > 0 && (
-        <div>
-          <h3>Atomized Prompts:</h3>
-          <ul>
-            {atomized.map((a, i) => <li key={i}>{a}</li>)}
+        <div style={{
+          margin: '20px 0',
+          padding: 'clamp(10px, 2vw, 15px)',
+          backgroundColor: '#cce7ff',
+          border: '1px solid #99d3ff',
+          borderRadius: '8px'
+        }}>
+          <h3 style={{
+            margin: '0 0 10px 0',
+            fontSize: 'clamp(16px, 3vw, 18px)',
+            color: '#004085'
+          }}>
+            Atomized Prompts:
+          </h3>
+          <ul style={{
+            margin: 0,
+            paddingLeft: 'clamp(16px, 3vw, 20px)',
+            fontSize: 'clamp(14px, 2.5vw, 16px)',
+            lineHeight: '1.5'
+          }}>
+            {atomized.map((a, i) => (
+              <li key={i} style={{ 
+                marginBottom: '8px',
+                wordWrap: 'break-word'
+              }}>
+                {a}
+              </li>
+            ))}
           </ul>
         </div>
       )}
