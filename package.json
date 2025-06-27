@@ -1,0 +1,55 @@
+{
+  "name": "mern-prompt-generator",
+  "version": "1.0.0",
+  "description": "Professional MERN stack prompt generator with AI optimization",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "build": "cd client && npm run build",
+    "start": "concurrently \"npm run start:server\" \"npm run start:client\"",
+    "start:client": "cd client && npm start",
+    "start:server": "cd server && npm start",
+    "test": "concurrently \"npm run test:server\" \"npm run test:client\"",
+    "test:client": "cd client && npm test",
+    "test:server": "cd server && npm test",
+    "test:coverage": "concurrently \"npm run test:coverage:server\" \"npm run test:coverage:client\"",
+    "test:coverage:client": "cd client && npm run test:coverage",
+    "test:coverage:server": "cd server && npm run test:coverage",
+    "lint": "concurrently \"npm run lint:server\" \"npm run lint:client\"",
+    "lint:client": "cd client && npm run lint",
+    "lint:server": "cd server && npm run lint",
+    "lint:fix": "concurrently \"npm run lint:fix:server\" \"npm run lint:fix:client\"",
+    "lint:fix:client": "cd client && npm run lint:fix",
+    "lint:fix:server": "cd server && npm run lint:fix",
+    "setup:db": "cd server && npm run db:migrate && npm run seed",
+    "reset:db": "cd server && npm run db:reset",
+    "heroku-postbuild": "npm run install:all && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/mern-prompt-generator.git"
+  },
+  "keywords": [
+    "mern",
+    "prompt",
+    "optimization",
+    "ai",
+    "nextjs",
+    "express",
+    "mongodb",
+    "token-optimization",
+    "tdd"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
