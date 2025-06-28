@@ -7,8 +7,11 @@ Build a RESTful MERN stack app using Next.js for the frontend. The app enables u
 - **Next.js frontend** (React, SSR/SSG supported)
 - **Express/Node.js REST API** backend
 - **MongoDB** for prompt/session/history storage
+- **Image upload and analysis** for visual context-aware prompts
 - **Prompt generation** optimized for clarity and minimal token use
 - **Prompt atomization** for multi-step/complex projects
+- **One-shot solution preambles** with TDD instructions
+- **AI model recommendations** based on prompt content
 - **User guidance**: clarifying questions, tips
 - **TDD throughout** (Jest, React Testing Library, Supertest)
 - **Recursive error correction**
@@ -56,40 +59,55 @@ graph TD
     %% API routes
     API --> OptimizeAPI["optimize.js (API route: prompt optimization)"]
     API --> AtomizeAPI["atomize.js (API route: prompt atomization)"]
+    API --> ImageUploadAPI["imageUpload.js (API route: image upload)"]
+    API --> ImagePromptAPI["imagePrompt.js (API route: image analysis)"]
     
     %% Components
     Components --> PromptForm["PromptForm.js"]
     Components --> PromptList["PromptList.js"]
     Components --> AtomizedPrompts["AtomizedPrompts.js"]
+    Components --> ImageUpload["ImageUpload.js"]
     
     %% Utils
     Utils --> OptimizeUtil["optimizePrompt.js"]
     Utils --> AtomizeUtil["atomize.js"]
+    Utils --> PreambleUtil["preambleGenerator.js"]
     
     %% Tests
     Tests --> PromptFormTest["PromptForm.test.js"]
+    Tests --> ImageUploadTest["ImageUpload.test.js"]
+    Tests --> PromptFormImageTest["PromptFormImage.test.js"]
+    Tests --> PreambleTest["preambleGenerator.test.js"]
     
     %% Server structure
     Server --> Models["models/"]
     Server --> Routes["routes/"]
     Server --> Controllers["controllers/"]
+    Server --> Utils["utils/"]
     Server --> ServerTests["tests/"]
     Server --> App["app.js"]
     Server --> ServerJS["server.js"]
     Server --> ServerPackage["package.json"]
     Server --> ServerJest["jest.config.js"]
+    Server --> Uploads["uploads/ (Image storage)"]
     
     %% Models
     Models --> PromptModel["Prompt.js"]
     
     %% Routes
     Routes --> PromptsRoute["prompts.js"]
+    Routes --> ImagesRoute["images.js"]
     
     %% Controllers
     Controllers --> PromptController["promptController.js"]
+    Controllers --> ImageController["imageController.js"]
     
     %% Server Tests
     ServerTests --> PromptTest["prompt.test.js"]
+    ServerTests --> ImagesTest["images.test.js"]
+    
+    %% Server Utils
+    Utils --> ImageAnalyzer["imageAnalyzer.js"]
 
     classDef default fill:#f9f9f9,stroke:#333,stroke-width:1px;
     classDef root fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
