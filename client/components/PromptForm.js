@@ -60,7 +60,7 @@ const getAIModelRecommendation = (prompt) => {
   };
 };
 
-export default function PromptForm({ onNewPrompt, onClearAll }) {
+export default function PromptForm({ onNewPrompt, onClearAll, onToggleInfo }) {
   const [input, setInput] = useState('');
   const [optimized, setOptimized] = useState('');
   const [atomized, setAtomized] = useState([]);
@@ -300,7 +300,40 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
             {!isMobile && (isVerbose ? 'Verbose' : 'Concise')}
           </button>
 
-
+          <button
+            aria-label="Info about Artisan"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '12px',
+              backgroundColor: 'transparent',
+              border: `1px solid ${currentTheme.primary}`,
+              borderRadius: '50%',
+              color: currentTheme.primary,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              fontSize: '20px',
+              width: '44px',
+              height: '44px',
+            }}
+            onClick={() => {
+              // Call the parent component's showDescription function
+              if (typeof onToggleInfo === 'function') {
+                onToggleInfo();
+              }
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = `${currentTheme.primary}20`;
+              e.target.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+              e.target.style.transform = 'translateY(0)';
+            }}
+          >
+            <span role="img" aria-hidden="true" style={{ fontSize: '1.2em' }}>ℹ️</span>
+          </button>
         </div>
         
         {promptSuggestions && (
@@ -462,7 +495,7 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
             alignItems: 'center',
             justifyContent: 'center',
             gap: isMobile ? '0' : '8px',
-            order: isMobile ? 2 : 1
+            order: 1
           }}
           onMouseEnter={(e) => {
             if (!loading) {
@@ -520,7 +553,7 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
             alignItems: 'center',
             justifyContent: 'center',
             gap: isMobile ? '0' : '8px',
-            order: isMobile ? 1 : 2
+            order: 2
           }}
           onMouseEnter={(e) => {
             if (!loading) {

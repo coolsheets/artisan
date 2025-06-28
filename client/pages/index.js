@@ -226,47 +226,6 @@ export default function Home() {
           position: 'relative',
           marginBottom: '30px'
         }}>
-          {/* Info button (always visible) */}
-          <button
-            ref={infoButtonRef}
-            aria-expanded={showDescription ? "true" : "false"}
-            aria-controls="app-description"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 15px auto',
-              padding: '12px',
-              fontSize: '20px',
-              backgroundColor: showDescription ? currentTheme.primary : 'transparent',
-              border: `1px solid ${currentTheme.primary}`,
-              borderRadius: '50%',
-              color: showDescription ? 'white' : currentTheme.primary,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              fontWeight: '600',
-              boxShadow: showDescription ? '0 2px 5px rgba(0,0,0,0.1)' : 'none',
-              width: '44px',
-              height: '44px',
-              position: 'relative',
-              zIndex: 5,
-            }}
-            onClick={() => setShowDescription(!showDescription)}
-            onMouseEnter={(e) => {
-              if (!showDescription) {
-                e.target.style.backgroundColor = `${currentTheme.primary}20`;
-                e.target.style.transform = 'translateY(-2px)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!showDescription) {
-                e.target.style.backgroundColor = 'transparent';
-                e.target.style.transform = 'translateY(0)';
-              }
-            }}
-          >
-            <span role="img" aria-label="info" style={{ fontSize: '1.2em' }}>ℹ️</span>
-          </button>
 
           {/* Description popup */}
           <div 
@@ -354,6 +313,7 @@ export default function Home() {
         <PromptForm 
           onNewPrompt={handleNewPrompt} 
           onClearAll={clearAllPrompts}
+          onToggleInfo={() => setShowDescription(!showDescription)}
           theme={theme} 
         />
         <PromptList prompts={prompts} theme={theme} />
