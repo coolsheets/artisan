@@ -74,7 +74,7 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
   const [isVerbose, setIsVerbose] = useState(false);
   const [animateOptimized, setAnimateOptimized] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [showDescription, setShowDescription] = useState(false);
+
 
   // Get current theme
   const { theme } = useTheme();
@@ -300,44 +300,7 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
             {!isMobile && (isVerbose ? 'Verbose' : 'Concise')}
           </button>
 
-          <button
-            aria-expanded={showDescription ? "true" : "false"}
-            aria-controls="app-description"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: isMobile ? '0' : '8px',
-              padding: isMobile ? '12px' : '10px 18px',
-              width: isMobile ? '44px' : 'auto',
-              height: isMobile ? '44px' : 'auto',
-              fontSize: isMobile ? '20px' : '14px',
-              backgroundColor: showDescription ? currentTheme.accent : 'transparent',
-              border: `1px solid ${currentTheme.accent}`,
-              borderRadius: isMobile ? '50%' : '24px',
-              color: showDescription ? currentTheme.buttonText : currentTheme.accent,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              fontWeight: '500'
-            }}
-            onClick={() => setShowDescription(!showDescription)}
-            onMouseEnter={(e) => {
-              if (!showDescription) {
-                e.target.style.backgroundColor = `${currentTheme.accent}20`;
-                e.target.style.transform = 'translateY(-2px)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!showDescription) {
-                e.target.style.backgroundColor = 'transparent';
-                e.target.style.transform = 'translateY(0)';
-              }
-            }}
-            aria-label={showDescription ? "Hide app description" : "Show app description"}
-          >
-            <span role="img" aria-hidden="true">ℹ️</span>
-            {!isMobile && (showDescription ? 'Hide Info' : 'Show Info')}
-          </button>
+
         </div>
         
         {promptSuggestions && (
@@ -577,48 +540,7 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
         </button>
       </div>
       
-      {/* Description section */}
-      {showDescription && (
-        <div 
-          id="app-description"
-          style={{ 
-            fontSize: 'clamp(14px, 2.5vw, 16px)', 
-            lineHeight: '1.6', 
-            color: currentTheme.secondaryText, 
-            backgroundColor: currentTheme.cardBg,
-            padding: 'clamp(15px, 2.5vw, 25px)',
-            borderRadius: '12px',
-            border: `1px solid ${currentTheme.border}`,
-            width: '100%',
-            boxSizing: 'border-box',
-            textAlign: 'center',
-            opacity: showDescription ? 1 : 0,
-            maxHeight: showDescription ? '300px' : '0',
-            overflow: 'hidden',
-            transform: showDescription ? 'translateY(0)' : 'translateY(-10px)',
-            transition: 'all 0.3s ease-in-out',
-            marginBottom: showDescription ? '25px' : '0',
-            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.05)'
-          }}
-          tabIndex={showDescription ? 0 : -1}
-          role="region"
-          aria-label="Application description"
-        >
-          <p style={{ marginTop: 0 }}>
-            <span role="img" aria-label="sparkles" style={{ fontSize: '1.2em', marginRight: '5px' }}>✨</span> 
-            This application helps you create optimized AI prompts for maximum effectiveness and minimal token usage.
-          </p>
-          <p>
-            Enter your project description or problem statement, and get both a concise optimized version and 
-            step-by-step atomized prompts for complex tasks. Perfect for developers, writers, and AI enthusiasts 
-            who want to craft better prompts for ChatGPT, Claude, and other AI systems.
-          </p>
-          <p style={{ marginBottom: 0, fontSize: '0.9em' }}>
-            <span role="img" aria-label="camera" style={{ marginRight: '5px' }}>📷</span>
-            You can also upload images for visual context-aware prompts!
-          </p>
-        </div>
-      )}
+
       
       {error && (
         <div style={{ 

@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext } from 'react';
+import { useState, useEffect, createContext, useRef } from 'react';
 import PromptForm from '../components/PromptForm';
 import PromptList from '../components/PromptList';
 
@@ -10,10 +10,30 @@ export const ThemeContext = createContext({
 
 export default function Home() {
   const [prompts, setPrompts] = useState([]);
-  const [showDescription, setShowDescription] = useState(false);
+  const [showDescription, setShowDescription] = useState(false); // Always hidden by default
   const [isMobile, setIsMobile] = useState(false);
   const [theme, setTheme] = useState('light');
   const [themeTransition, setThemeTransition] = useState(false);
+  const descriptionRef = useRef(null);
+  const infoButtonRef = useRef(null);
+  
+  // Close info popup when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (showDescription && 
+          descriptionRef.current && 
+          infoButtonRef.current &&
+          !descriptionRef.current.contains(event.target) &&
+          !infoButtonRef.current.contains(event.target)) {
+        setShowDescription(false);
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDescription]);
   
   // Theme toggle handler with transition
   const toggleTheme = () => {
@@ -88,9 +108,7 @@ export default function Home() {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      if (!mobile) {
-        setShowDescription(true);
-      }
+      // Never show description automatically
     };
     
     checkMobile();
@@ -130,6 +148,24 @@ export default function Home() {
   
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {/* Backdrop overlay for modal */}
+      {showDescription && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 99,
+            transition: 'opacity 0.3s ease',
+          }}
+          onClick={() => setShowDescription(false)}
+          aria-hidden="true"
+        />
+      )}
+      
       <div style={{ 
         padding: '20px', 
         maxWidth: '900px', 
@@ -190,70 +226,116 @@ export default function Home() {
           position: 'relative',
           marginBottom: '30px'
         }}>
-          {/* Mobile info button */}
-          {isMobile && (
-            <button
-              aria-expanded={showDescription ? "true" : "false"}
-              aria-controls="app-description"
-              style={{
-                display: 'block',
-                margin: '0 auto 15px auto',
-                padding: '12px 20px',
-                fontSize: '14px',
-                backgroundColor: showDescription ? currentTheme.primary : 'transparent',
-                border: `1px solid ${currentTheme.primary}`,
-                borderRadius: '24px',
-                color: showDescription ? 'white' : currentTheme.primary,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontWeight: '600',
-                boxShadow: showDescription ? '0 2px 5px rgba(0,0,0,0.1)' : 'none'
-              }}
-              onClick={() => setShowDescription(!showDescription)}
-              onMouseEnter={(e) => {
-                if (!showDescription) {
-                  e.target.style.backgroundColor = currentTheme.primaryHover;
-                  e.target.style.color = 'white';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!showDescription) {
-                  e.target.style.backgroundColor = 'transparent';
-                  e.target.style.color = currentTheme.primary;
-                }
-              }}
-            >
-              {showDescription ? '✕ Hide Info' : 'ℹ️ Show Info'}
-            </button>
-          )}
+          {/* Info button (always visible) */}
+          <button
+            ref={infoButtonRef}
+            aria-expanded={showDescription ? "true" : "false"}
+            aria-controls="app-description"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 15px auto',
+              padding: '12px',
+              fontSize: '20px',
+              backgroundColor: showDescription ? currentTheme.primary : 'transparent',
+              border: `1px solid ${currentTheme.primary}`,
+              borderRadius: '50%',
+              color: showDescription ? 'white' : currentTheme.primary,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              fontWeight: '600',
+              boxShadow: showDescription ? '0 2px 5px rgba(0,0,0,0.1)' : 'none',
+              width: '44px',
+              height: '44px',
+              position: 'relative',
+              zIndex: 5,
+            }}
+            onClick={() => setShowDescription(!showDescription)}
+            onMouseEnter={(e) => {
+              if (!showDescription) {
+                e.target.style.backgroundColor = `${currentTheme.primary}20`;
+                e.target.style.transform = 'translateY(-2px)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!showDescription) {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.transform = 'translateY(0)';
+              }
+            }}
+          >
+            <span role="img" aria-label="info" style={{ fontSize: '1.2em' }}>ℹ️</span>
+          </button>
 
-          {/* Description paragraph */}
+          {/* Description popup */}
           <div 
             id="app-description"
+            ref={descriptionRef}
             style={{ 
               fontSize: 'clamp(14px, 2.5vw, 16px)', 
               lineHeight: '1.6', 
               color: currentTheme.secondaryText, 
               backgroundColor: currentTheme.cardBg,
-              padding: 'clamp(15px, 2.5vw, 25px)',
+              padding: 'clamp(20px, 3vw, 30px)',
               borderRadius: '12px',
               border: `1px solid ${currentTheme.border}`,
-              width: '100%',
               boxSizing: 'border-box',
-              textAlign: 'center',
-              opacity: isMobile ? (showDescription ? 1 : 0) : 1,
-              maxHeight: isMobile ? (showDescription ? '300px' : '0') : 'none',
-              overflow: 'hidden',
-              transform: isMobile ? (showDescription ? 'translateY(0)' : 'translateY(-10px)') : 'translateY(0)',
+              textAlign: 'left',
+              opacity: showDescription ? 1 : 0,
+              visibility: showDescription ? 'visible' : 'hidden',
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: showDescription ? 'translate(-50%, -50%)' : 'translate(-50%, -60%)',
               transition: 'all 0.3s ease-in-out',
-              marginBottom: isMobile && !showDescription ? '0' : '25px',
-              boxShadow: '0 3px 10px rgba(0, 0, 0, 0.05)'
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.25)',
+              zIndex: 100,
+              maxWidth: '600px',
+              width: '90%',
+              maxHeight: '80vh',
+              overflowY: 'auto',
             }}
-            tabIndex={isMobile && !showDescription ? -1 : 0}
-            role="region"
+            tabIndex={showDescription ? 0 : -1}
+            role="dialog"
+            aria-modal="true"
             aria-label="Application description"
           >
-            <p style={{ marginTop: 0 }}>
+            {/* Close button */}
+            <button
+              onClick={() => setShowDescription(false)}
+              style={{
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                background: 'transparent',
+                border: 'none',
+                fontSize: '24px',
+                cursor: 'pointer',
+                color: currentTheme.text,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '8px',
+                borderRadius: '50%',
+                width: '36px',
+                height: '36px',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = `${currentTheme.primary}20`;
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+              }}
+              aria-label="Close info popup"
+            >
+              ✕
+            </button>
+            
+            <h3 style={{ marginTop: 0, color: currentTheme.text, fontWeight: '600' }}>About Artisan Prompt Generator</h3>
+            
+            <p style={{ marginTop: '15px' }}>
               <span role="img" aria-label="sparkles" style={{ fontSize: '1.2em', marginRight: '5px' }}>✨</span> 
               This application helps you create optimized AI prompts for maximum effectiveness and minimal token usage.
             </p>

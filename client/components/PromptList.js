@@ -7,8 +7,6 @@ export default function PromptList({ prompts }) {
   const [expandedPrompt, setExpandedPrompt] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [showHistory, setShowHistory] = useState(true);
-  const [isInfoPopupOpen, setIsInfoPopupOpen] = useState(false);
-  const tooltipRef = useRef(null);
   
   // Check if mobile on mount and resize
   useEffect(() => {
@@ -25,31 +23,12 @@ export default function PromptList({ prompts }) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
   
-  // Track if mouse is currently over the info button
-  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
-  
-  // Handle tooltip visibility
-  useEffect(() => {
-    if (!tooltipRef.current) return;
-    
-    if (isTooltipVisible && !isInfoPopupOpen) {
-      tooltipRef.current.style.opacity = '1';
-      tooltipRef.current.style.visibility = 'visible';
-    } else {
-      tooltipRef.current.style.opacity = '0';
-      tooltipRef.current.style.visibility = 'hidden';
-    }
-  }, [isTooltipVisible, isInfoPopupOpen]);
-  
   // Toggle expanded state of a prompt
   const togglePrompt = (index) => {
     setExpandedPrompt(expandedPrompt === index ? null : index);
   };
   
-  // Toggle info popup visibility
-  const toggleInfoPopup = () => {
-    setIsInfoPopupOpen(prev => !prev);
-  };
+  // We don't need this toggle function anymore as we're only using a tooltip
 
   const [fetchError, setFetchError] = useState(null);
   const [isRetrying, setIsRetrying] = useState(false);
@@ -101,69 +80,7 @@ export default function PromptList({ prompts }) {
         width: '100%'
       }}
     >
-      {/* Info Popup */}
-      {isInfoPopupOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000,
-        }}>
-          <div 
-            id="info-popup"
-            style={{
-              backgroundColor: currentTheme.cardBg,
-              borderRadius: '12px',
-              padding: '24px',
-              maxWidth: '500px',
-              width: '90%',
-              boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
-              position: 'relative',
-              maxHeight: '80vh',
-              overflow: 'auto',
-            }}
-          >
-            <button
-              onClick={toggleInfoPopup}
-              style={{
-                position: 'absolute',
-                top: '12px',
-                right: '12px',
-                background: 'transparent',
-                border: 'none',
-                fontSize: '24px',
-                cursor: 'pointer',
-                color: currentTheme.secondaryText,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '4px',
-              }}
-              aria-label="Close info popup"
-            >
-              ✕
-            </button>
-            <h2 style={{ marginTop: 0, color: currentTheme.text }}>About Artisan Prompt Generator</h2>
-            <div style={{ color: currentTheme.text, lineHeight: 1.6 }}>
-              <p>Artisan is an AI prompt generator designed to help you create better prompts for AI image and text generation.</p>
-              <p>Features:</p>
-              <ul>
-                <li>Optimizes your basic prompts for better results</li>
-                <li>Breaks down complex requests into atomic steps</li>
-                <li>Supports uploading reference images</li>
-                <li>Stores your prompt history for later reference</li>
-              </ul>
-              <p>To get started, simply type your desired prompt in the input field and click the generate button.</p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Info tooltip is shown on hover, no popup needed */}
 
       {fetchError && (
         <div 
@@ -260,72 +177,6 @@ export default function PromptList({ prompts }) {
         >
           <span role="img" aria-hidden="true" style={{ fontSize: isMobile ? '1.2em' : '0.9em' }}>📚</span>
           {!isMobile && <span id="history-heading">Generated Prompts History</span>}
-        </button>
-
-        <button
-          onClick={toggleInfoPopup}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '12px',
-            backgroundColor: isInfoPopupOpen ? currentTheme.primary : 'transparent',
-            border: `1px solid ${currentTheme.primary}`,
-            borderRadius: '50%',
-            color: isInfoPopupOpen ? currentTheme.buttonText : currentTheme.primary,
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            fontSize: '20px',
-            width: '44px',
-            height: '44px',
-            position: 'relative',
-          }}
-          aria-expanded={isInfoPopupOpen}
-          aria-controls="info-popup"
-          aria-label={isInfoPopupOpen ? "Hide info about Artisan" : "Show info about Artisan"}
-          onMouseEnter={(e) => {
-            if (!isInfoPopupOpen) {
-              e.currentTarget.style.backgroundColor = `${currentTheme.primary}20`;
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              setIsTooltipVisible(true);
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isInfoPopupOpen) {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.transform = 'translateY(0)';
-              setIsTooltipVisible(false);
-            }
-          }}
-        >
-          <span role="img" aria-hidden="true" style={{ fontSize: '1.2em' }}>ℹ️</span>
-          {!isInfoPopupOpen && (
-            <div 
-              id="info-tooltip" 
-              style={{
-                position: 'absolute',
-                top: 'calc(100% + 10px)',
-                right: '-10px',
-                background: currentTheme.cardBg,
-                border: `1px solid ${currentTheme.border}`,
-                borderRadius: '6px',
-                padding: '8px 12px',
-                boxShadow: `0 4px 12px ${currentTheme.shadowColor}`,
-                width: 'max-content',
-                maxWidth: '200px',
-                fontSize: '14px',
-                zIndex: 10,
-                color: currentTheme.text,
-                pointerEvents: 'none',
-                transition: 'opacity 0.2s ease, visibility 0.2s ease',
-                opacity: 0,
-                visibility: 'hidden',
-              }}
-              ref={tooltipRef}
-            >
-              About Artisan Prompt Generator
-            </div>
-          )}
         </button>
       </div>
       
