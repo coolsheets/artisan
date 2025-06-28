@@ -7,7 +7,7 @@ export default function PromptList({ prompts }) {
   const [expandedPrompt, setExpandedPrompt] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [showHistory, setShowHistory] = useState(true);
-  const [infoPopupVisible, setInfoPopupVisible] = useState(false);
+  const [isInfoPopupOpen, setIsInfoPopupOpen] = useState(false);
   
   // Check if mobile on mount and resize
   useEffect(() => {
@@ -29,11 +29,9 @@ export default function PromptList({ prompts }) {
     setExpandedPrompt(expandedPrompt === index ? null : index);
   };
   
-  const [isInfoPopupOpen, setIsInfoPopupOpen] = useState(false);
-  
-  // Enhanced info popup with proper UI component instead of alert
-  const showInfoPopup = () => {
-    setIsInfoPopupOpen(true);
+  // Toggle info popup visibility
+  const toggleInfoPopup = () => {
+    setIsInfoPopupOpen(prev => !prev);
   };
 
   const [fetchError, setFetchError] = useState(null);
@@ -100,19 +98,22 @@ export default function PromptList({ prompts }) {
           alignItems: 'center',
           zIndex: 1000,
         }}>
-          <div style={{
-            backgroundColor: currentTheme.cardBg,
-            borderRadius: '12px',
-            padding: '24px',
-            maxWidth: '500px',
-            width: '90%',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
-            position: 'relative',
-            maxHeight: '80vh',
-            overflow: 'auto',
-          }}>
+          <div 
+            id="info-popup"
+            style={{
+              backgroundColor: currentTheme.cardBg,
+              borderRadius: '12px',
+              padding: '24px',
+              maxWidth: '500px',
+              width: '90%',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+              position: 'relative',
+              maxHeight: '80vh',
+              overflow: 'auto',
+            }}
+          >
             <button
-              onClick={() => setIsInfoPopupOpen(false)}
+              onClick={toggleInfoPopup}
               style={{
                 position: 'absolute',
                 top: '12px',
@@ -245,17 +246,17 @@ export default function PromptList({ prompts }) {
         </button>
 
         <button
-          onClick={showInfoPopup}
+          onClick={toggleInfoPopup}
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: isMobile ? '0' : '8px',
             padding: isMobile ? '12px' : '10px 16px',
-            backgroundColor: 'transparent',
+            backgroundColor: isInfoPopupOpen ? currentTheme.primary : 'transparent',
             border: `1px solid ${currentTheme.primary}`,
             borderRadius: isMobile ? '50%' : '24px',
-            color: currentTheme.primary,
+            color: isInfoPopupOpen ? currentTheme.buttonText : currentTheme.primary,
             cursor: 'pointer',
             transition: 'all 0.2s ease',
             fontSize: isMobile ? '20px' : 'inherit',
@@ -263,18 +264,24 @@ export default function PromptList({ prompts }) {
             height: isMobile ? '44px' : 'auto',
             fontWeight: '500',
           }}
-          aria-label="Show Info"
+          aria-expanded={isInfoPopupOpen}
+          aria-controls="info-popup"
+          aria-label={isInfoPopupOpen ? "Hide Info" : "Show Info"}
           onMouseEnter={(e) => {
-            e.target.style.backgroundColor = `${currentTheme.primary}20`;
-            e.target.style.transform = 'translateY(-2px)';
+            if (!isInfoPopupOpen) {
+              e.target.style.backgroundColor = `${currentTheme.primary}20`;
+              e.target.style.transform = 'translateY(-2px)';
+            }
           }}
           onMouseLeave={(e) => {
-            e.target.style.backgroundColor = 'transparent';
-            e.target.style.transform = 'translateY(0)';
+            if (!isInfoPopupOpen) {
+              e.target.style.backgroundColor = 'transparent';
+              e.target.style.transform = 'translateY(0)';
+            }
           }}
         >
           <span role="img" aria-hidden="true" style={{ fontSize: isMobile ? '1.2em' : '0.9em' }}>ℹ️</span>
-          {!isMobile && <span>Show Info</span>}
+          {!isMobile && <span>{isInfoPopupOpen ? "Hide Info" : "Show Info"}</span>}
         </button>
       </div>
       
