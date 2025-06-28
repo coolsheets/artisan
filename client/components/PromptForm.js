@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { generatePreamble, generateConcisePreamble, analyzeProblemType, estimateTokens } from '../utils/preambleGenerator';
+import { useTheme, getThemeStyles } from '../utils/themeUtils';
 import ImageUpload from './ImageUpload';
 
 // Function to recommend AI models based on prompt content
@@ -70,6 +71,12 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
   const [imageAnalysis, setImageAnalysis] = useState(null);
   const [showImageUpload, setShowImageUpload] = useState(false);
   const [promptSuggestions, setPromptSuggestions] = useState(null);
+  const [isVerbose, setIsVerbose] = useState(false);
+  const [animateOptimized, setAnimateOptimized] = useState(false);
+
+  // Get current theme
+  const { theme } = useTheme();
+  const currentTheme = getThemeStyles(theme);
 
   const handleOptimize = async () => {
     if (!input.trim()) {
@@ -188,37 +195,94 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
     <div style={{ width: '100%' }}>
       <div style={{
         display: 'flex',
+        flexWrap: 'wrap',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '10px'
+        gap: '10px',
+        marginBottom: '16px'
       }}>
-        <button
-          onClick={toggleImageUpload}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '8px 16px',
-            fontSize: '14px',
-            backgroundColor: showImageUpload ? '#007bff' : 'transparent',
-            border: '1px solid #007bff',
-            borderRadius: '20px',
-            color: showImageUpload ? 'white' : '#007bff',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <span role="img" aria-label="camera">📷</span>
-          {showImageUpload ? 'Hide Image Upload' : 'Add Image'}
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            onClick={toggleImageUpload}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 18px',
+              fontSize: '14px',
+              backgroundColor: showImageUpload ? currentTheme.primary : 'transparent',
+              border: `1px solid ${currentTheme.primary}`,
+              borderRadius: '24px',
+              color: showImageUpload ? currentTheme.buttonText : currentTheme.primary,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              fontWeight: '500',
+              boxShadow: showImageUpload ? `0 2px 5px ${currentTheme.shadowColor}` : 'none'
+            }}
+            onMouseEnter={(e) => {
+              if (!showImageUpload) {
+                e.target.style.backgroundColor = `${currentTheme.primary}20`; // 20% opacity
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!showImageUpload) {
+                e.target.style.backgroundColor = 'transparent';
+              }
+            }}
+            aria-pressed={showImageUpload}
+            aria-label={showImageUpload ? "Hide image upload panel" : "Show image upload panel"}
+          >
+            <span role="img" aria-hidden="true">📷</span>
+            {showImageUpload ? 'Hide Image Upload' : 'Add Image'}
+          </button>
+          
+          <button
+            onClick={() => setIsVerbose(!isVerbose)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 18px',
+              fontSize: '14px',
+              backgroundColor: isVerbose ? currentTheme.info : 'transparent',
+              border: `1px solid ${currentTheme.info}`,
+              borderRadius: '24px',
+              color: isVerbose ? currentTheme.buttonText : currentTheme.info,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              fontWeight: '500'
+            }}
+            onMouseEnter={(e) => {
+              if (!isVerbose) {
+                e.target.style.backgroundColor = `${currentTheme.info}20`; // 20% opacity
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isVerbose) {
+                e.target.style.backgroundColor = 'transparent';
+              }
+            }}
+            aria-pressed={isVerbose}
+          >
+            <span role="img" aria-hidden="true">{isVerbose ? '📝' : '✓'}</span>
+            {isVerbose ? 'Verbose' : 'Concise'}
+          </button>
+        </div>
         
         {promptSuggestions && (
           <div style={{
             fontSize: '14px',
-            color: '#6c757d',
+            color: currentTheme.secondaryText,
+            padding: '6px 12px',
+            backgroundColor: `${currentTheme.info}15`,
+            borderRadius: '6px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
           }}>
+            <span role="img" aria-label="camera" style={{ fontSize: '16px' }}>🔍</span>
             <span>Image detected: </span>
-            <strong style={{ color: '#007bff' }}>
+            <strong style={{ color: currentTheme.primary }}>
               {imageAnalysis?.analysis?.content?.possibleSubjects?.slice(0, 2).join(', ')}
             </strong>
           </div>
@@ -234,30 +298,62 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
       
       {promptSuggestions && (
         <div style={{
-          marginBottom: '15px',
-          padding: '10px',
-          backgroundColor: '#e9f7fe',
-          borderRadius: '6px',
-          fontSize: '14px'
+          marginBottom: '20px',
+          padding: '15px',
+          backgroundColor: `${currentTheme.info}15`,
+          borderRadius: '10px',
+          fontSize: '14px',
+          border: `1px solid ${currentTheme.info}30`,
+          boxShadow: `0 2px 8px ${currentTheme.shadowColor}`,
+          animation: 'fadeIn 0.3s ease-in-out'
         }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>Suggested Prompts:</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+          <div style={{ 
+            fontWeight: 'bold', 
+            marginBottom: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            color: currentTheme.info 
+          }}>
+            <span role="img" aria-hidden="true">💡</span>
+            Suggested Prompts from Image Analysis:
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {Object.entries(promptSuggestions).map(([key, value]) => (
               <div 
                 key={key}
-                onClick={() => setInput(value)}
+                onClick={() => {
+                  setInput(value);
+                  // Focus the textarea
+                  document.getElementById('prompt-input').focus();
+                }}
                 style={{
-                  padding: '5px',
+                  padding: '10px 12px',
                   cursor: 'pointer',
-                  borderRadius: '4px',
-                  backgroundColor: 'rgba(255,255,255,0.5)',
-                  transition: 'background-color 0.2s'
+                  borderRadius: '8px',
+                  backgroundColor: theme === 'light' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.1)',
+                  transition: 'all 0.2s',
+                  border: `1px solid ${currentTheme.border}`,
+                  color: currentTheme.text
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = 'rgba(0,123,255,0.1)';
+                  e.target.style.backgroundColor = `${currentTheme.primary}15`;
+                  e.target.style.borderColor = currentTheme.primary;
+                  e.target.style.transform = 'translateY(-1px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'rgba(255,255,255,0.5)';
+                  e.target.style.backgroundColor = theme === 'light' ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.1)';
+                  e.target.style.borderColor = currentTheme.border;
+                  e.target.style.transform = 'translateY(0)';
+                }}
+                role="button"
+                tabIndex="0"
+                aria-label={`Use prompt suggestion: ${value}`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    setInput(value);
+                    document.getElementById('prompt-input').focus();
+                  }
                 }}
               >
                 {value}
@@ -268,71 +364,146 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
       )}
 
       <textarea 
+        id="prompt-input"
         value={input} 
         onChange={e => setInput(e.target.value)} 
-        rows={4}
-        placeholder="Describe your project/problem..." 
+        rows={6}
+        placeholder="Describe your project or problem..."
+        aria-label="Prompt input"
         style={{
           width: '100%',
           boxSizing: 'border-box',
-          padding: 'clamp(8px, 1.5vw, 12px)',
+          padding: 'clamp(12px, 2vw, 16px)',
           fontSize: 'clamp(14px, 2.5vw, 16px)',
-          border: '1px solid #ccc',
-          borderRadius: '8px',
+          border: `1px solid ${currentTheme.border}`,
+          borderRadius: '10px',
           resize: 'vertical',
           fontFamily: 'inherit',
-          lineHeight: '1.4'
+          lineHeight: '1.5',
+          color: currentTheme.text,
+          backgroundColor: currentTheme.inputBg,
+          boxShadow: `0 2px 6px ${currentTheme.shadowColor}`,
+          transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+          outline: 'none'
+        }}
+        onFocus={(e) => {
+          e.target.style.borderColor = currentTheme.primary;
+          e.target.style.boxShadow = `0 0 0 3px ${currentTheme.primary}30`;
+        }}
+        onBlur={(e) => {
+          e.target.style.borderColor = currentTheme.border;
+          e.target.style.boxShadow = `0 2px 6px ${currentTheme.shadowColor}`;
         }}
       />
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between',
         alignItems: 'center',
-        margin: '15px 0',
-        gap: '15px',
+        margin: '20px 0',
+        gap: '16px',
         flexWrap: 'wrap'
       }}>
         <button 
           onClick={handleOptimize} 
           disabled={loading}
+          aria-label="Generate optimized prompts"
           style={{
-            padding: 'clamp(8px, 1.5vw, 12px) clamp(16px, 3vw, 24px)',
+            padding: 'clamp(12px, 2vw, 16px) clamp(20px, 3.5vw, 28px)',
             fontSize: 'clamp(14px, 2.5vw, 16px)',
-            backgroundColor: '#007bff',
-            color: 'white',
+            backgroundColor: loading ? `${currentTheme.primary}80` : currentTheme.primary,
+            color: currentTheme.buttonText,
             border: 'none',
-            borderRadius: '6px',
+            borderRadius: '10px',
             cursor: loading ? 'not-allowed' : 'pointer',
-            opacity: loading ? 0.6 : 1,
-            fontWeight: '500',
-            minHeight: '44px',
-            flex: '1 1 0',
-            minWidth: '120px'
+            fontWeight: '600',
+            minHeight: '50px',
+            flex: '2 1 0',
+            minWidth: '160px',
+            boxShadow: loading ? 'none' : `0 4px 6px ${currentTheme.shadowColor}`,
+            transition: 'all 0.2s ease',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}
+          onMouseEnter={(e) => {
+            if (!loading) {
+              e.target.style.backgroundColor = currentTheme.primaryHover;
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = `0 6px 8px ${currentTheme.shadowColor}`;
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = loading ? `${currentTheme.primary}80` : currentTheme.primary;
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = loading ? 'none' : `0 4px 6px ${currentTheme.shadowColor}`;
           }}
         >
-          {loading ? 'Processing...' : 'Generate'}
+          {loading ? (
+            <>
+              <div style={{
+                width: '18px',
+                height: '18px',
+                border: '3px solid rgba(255,255,255,0.3)',
+                borderRadius: '50%',
+                borderTopColor: '#fff',
+                animation: 'spin 1s linear infinite',
+                display: 'inline-block'
+              }} />
+              Processing...
+            </>
+          ) : (
+            <>
+              <span role="img" aria-hidden="true">✨</span>
+              Generate Optimized Prompts
+            </>
+          )}
         </button>
         <button 
           onClick={clearAll} 
           disabled={loading}
+          aria-label="Clear all inputs and results"
           style={{ 
-            padding: 'clamp(8px, 1.5vw, 12px) clamp(16px, 3vw, 24px)',
+            padding: 'clamp(12px, 2vw, 16px) clamp(20px, 3.5vw, 28px)',
             fontSize: 'clamp(14px, 2.5vw, 16px)',
-            backgroundColor: '#6c757d',
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '6px', 
+            backgroundColor: currentTheme.cardBg,
+            color: currentTheme.text, 
+            border: `1px solid ${currentTheme.border}`, 
+            borderRadius: '10px', 
             cursor: loading ? 'not-allowed' : 'pointer',
             opacity: loading ? 0.6 : 1,
             fontWeight: '500',
-            minHeight: '44px',
+            minHeight: '50px',
             flex: '1 1 0',
-            minWidth: '120px'
+            minWidth: '120px',
+            transition: 'all 0.2s ease',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}
+          onMouseEnter={(e) => {
+            if (!loading) {
+              e.target.style.backgroundColor = theme === 'light' ? '#f8f9fa' : '#2b3035';
+              e.target.style.borderColor = currentTheme.primary;
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = currentTheme.cardBg;
+            e.target.style.borderColor = currentTheme.border;
           }}
         >
+          <span role="img" aria-hidden="true">🗑️</span>
           Clear
         </button>
       </div>
+      
+      {/* Add @keyframes for spinner animation */}
+      <style jsx>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
       
       {error && (
         <div style={{ 

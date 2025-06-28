@@ -1,10 +1,16 @@
 import { useState, useRef } from 'react';
+import { useTheme, getThemeStyles } from '../utils/themeUtils';
 
 export default function ImageUpload({ onImageAnalysis, onError }) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef(null);
+  
+  // Get current theme
+  const { theme } = useTheme();
+  const currentTheme = getThemeStyles(theme);
   
   // Handle file drop
   const handleDrop = (e) => {
@@ -49,24 +55,41 @@ export default function ImageUpload({ onImageAnalysis, onError }) {
     uploadFile(file);
   };
   
-  // Upload the file to the server
+  // Upload the file to the server with progress simulation
   const uploadFile = async (file) => {
     try {
       setIsUploading(true);
+      setUploadProgress(0);
       
+      // Create form data
       const formData = new FormData();
       formData.append('image', file);
       
+      // Simulate progress updates
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          // Simulate progress up to 90% (real completion will set to 100%)
+          const newProgress = prev + (5 * Math.random());
+          return newProgress < 90 ? newProgress : 90;
+        });
+      }, 100);
+      
+      // Actual upload
       const response = await fetch('/api/imageUpload', {
         method: 'POST',
         body: formData,
       });
+      
+      clearInterval(progressInterval);
       
       const result = await response.json();
       
       if (!result.success) {
         throw new Error(result.message || 'Image upload failed');
       }
+      
+      // Complete progress animation
+      setUploadProgress(100);
       
       // Generate prompt suggestions
       await generatePromptSuggestions(result.data.analysis);
@@ -76,8 +99,11 @@ export default function ImageUpload({ onImageAnalysis, onError }) {
     } catch (error) {
       console.error('Error uploading image:', error);
       onError && onError(`Upload failed: ${error.message}`);
+      setUploadProgress(0);
     } finally {
-      setIsUploading(false);
+      setTimeout(() => {
+        setIsUploading(false);
+      }, 500); // Keep status visible briefly after upload completes
     }
   };
   
@@ -133,10 +159,47 @@ export default function ImageUpload({ onImageAnalysis, onError }) {
   };
   
   return (
-    <div style={{
+    <div className="fadeIn" style={{
       width: '100%',
       marginBottom: '20px',
     }}>
+      {/* Upload status and progress bar */}
+      {isUploading && (
+        <div style={{ 
+          marginBottom: '15px',
+          padding: '10px',
+          borderRadius: '8px',
+          backgroundColor: currentTheme.cardBg,
+          border: `1px solid ${currentTheme.border}`,
+          color: currentTheme.text
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginBottom: '8px',
+            fontSize: '14px'
+          }}>
+            <span>Uploading and analyzing image...</span>
+            <span>{Math.round(uploadProgress)}%</span>
+          </div>
+          <div style={{
+            height: '6px',
+            backgroundColor: currentTheme.border,
+            borderRadius: '3px',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              height: '100%',
+              width: `${uploadProgress}%`,
+              backgroundColor: currentTheme.primary,
+              borderRadius: '3px',
+              transition: 'width 0.2s ease'
+            }} />
+          </div>
+        </div>
+      )}
+      
+      {/* Drop area */}
       <div
         onClick={() => fileInputRef.current.click()}
         onDrop={handleDrop}
@@ -144,15 +207,19 @@ export default function ImageUpload({ onImageAnalysis, onError }) {
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         style={{
-          border: `2px dashed ${isDragging ? '#007bff' : '#ccc'}`,
-          borderRadius: '8px',
-          padding: '20px',
+          border: `2px dashed ${isDragging ? currentTheme.primary : currentTheme.border}`,
+          borderRadius: '12px',
+          padding: '25px',
           textAlign: 'center',
-          backgroundColor: isDragging ? '#e9f6ff' : '#f8f9fa',
+          backgroundColor: isDragging 
+            ? `${currentTheme.primary}15` // 15% opacity version of primary color
+            : currentTheme.cardBg,
           cursor: 'pointer',
           transition: 'all 0.3s ease',
           position: 'relative',
+          boxShadow: isDragging ? `0 0 0 3px ${currentTheme.primary}30` : 'none'
         }}
+        aria-label="Drag and drop area for image upload"
       >
         <input
           type="file"
@@ -163,14 +230,20 @@ export default function ImageUpload({ onImageAnalysis, onError }) {
         />
         
         {previewUrl ? (
-          <div style={{ position: 'relative' }}>
+          <div style={{ 
+            position: 'relative',
+            maxWidth: '400px',
+            margin: '0 auto'
+          }}>
             <img
               src={previewUrl}
               alt="Preview"
               style={{
-                maxWidth: '100%',
-                maxHeight: '200px',
-                borderRadius: '6px',
+                width: '100%',
+                maxHeight: '250px',
+                objectFit: 'contain',
+                borderRadius: '8px',
+                boxShadow: `0 4px 12px ${currentTheme.shadowColor}`
               }}
             />
             <button
@@ -178,21 +251,26 @@ export default function ImageUpload({ onImageAnalysis, onError }) {
                 e.stopPropagation();
                 clearImage();
               }}
+              aria-label="Remove image"
               style={{
                 position: 'absolute',
-                top: '5px',
-                right: '5px',
-                background: 'rgba(0, 0, 0, 0.5)',
+                top: '10px',
+                right: '10px',
+                backgroundColor: currentTheme.danger,
                 color: 'white',
                 border: 'none',
                 borderRadius: '50%',
-                width: '25px',
-                height: '25px',
+                width: '32px',
+                height: '32px',
+                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: 'pointer',
-                fontSize: '14px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                padding: '0',
+                boxShadow: `0 2px 5px ${currentTheme.shadowColor}`,
+                transition: 'transform 0.2s ease, background-color 0.2s ease',
               }}
             >
               ✕
