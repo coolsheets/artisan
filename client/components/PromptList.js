@@ -1,5 +1,5 @@
 import { useTheme, getThemeStyles } from '../utils/themeUtils';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function PromptList({ prompts }) {
   const { theme } = useTheme();
@@ -8,6 +8,7 @@ export default function PromptList({ prompts }) {
   const [isMobile, setIsMobile] = useState(false);
   const [showHistory, setShowHistory] = useState(true);
   const [isInfoPopupOpen, setIsInfoPopupOpen] = useState(false);
+  const tooltipRef = useRef(null);
   
   // Check if mobile on mount and resize
   useEffect(() => {
@@ -23,6 +24,22 @@ export default function PromptList({ prompts }) {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+  
+  // Track if mouse is currently over the info button
+  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
+  
+  // Handle tooltip visibility
+  useEffect(() => {
+    if (!tooltipRef.current) return;
+    
+    if (isTooltipVisible && !isInfoPopupOpen) {
+      tooltipRef.current.style.opacity = '1';
+      tooltipRef.current.style.visibility = 'visible';
+    } else {
+      tooltipRef.current.style.opacity = '0';
+      tooltipRef.current.style.visibility = 'hidden';
+    }
+  }, [isTooltipVisible, isInfoPopupOpen]);
   
   // Toggle expanded state of a prompt
   const togglePrompt = (index) => {
@@ -251,37 +268,64 @@ export default function PromptList({ prompts }) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: isMobile ? '0' : '8px',
-            padding: isMobile ? '12px' : '10px 16px',
+            padding: '12px',
             backgroundColor: isInfoPopupOpen ? currentTheme.primary : 'transparent',
             border: `1px solid ${currentTheme.primary}`,
-            borderRadius: isMobile ? '50%' : '24px',
+            borderRadius: '50%',
             color: isInfoPopupOpen ? currentTheme.buttonText : currentTheme.primary,
             cursor: 'pointer',
             transition: 'all 0.2s ease',
-            fontSize: isMobile ? '20px' : 'inherit',
-            width: isMobile ? '44px' : 'auto',
-            height: isMobile ? '44px' : 'auto',
-            fontWeight: '500',
+            fontSize: '20px',
+            width: '44px',
+            height: '44px',
+            position: 'relative',
           }}
           aria-expanded={isInfoPopupOpen}
           aria-controls="info-popup"
-          aria-label={isInfoPopupOpen ? "Hide Info" : "Show Info"}
+          aria-label={isInfoPopupOpen ? "Hide info about Artisan" : "Show info about Artisan"}
           onMouseEnter={(e) => {
             if (!isInfoPopupOpen) {
-              e.target.style.backgroundColor = `${currentTheme.primary}20`;
-              e.target.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.backgroundColor = `${currentTheme.primary}20`;
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              setIsTooltipVisible(true);
             }
           }}
           onMouseLeave={(e) => {
             if (!isInfoPopupOpen) {
-              e.target.style.backgroundColor = 'transparent';
-              e.target.style.transform = 'translateY(0)';
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.transform = 'translateY(0)';
+              setIsTooltipVisible(false);
             }
           }}
         >
-          <span role="img" aria-hidden="true" style={{ fontSize: isMobile ? '1.2em' : '0.9em' }}>ℹ️</span>
-          {!isMobile && <span>{isInfoPopupOpen ? "Hide Info" : "Show Info"}</span>}
+          <span role="img" aria-hidden="true" style={{ fontSize: '1.2em' }}>ℹ️</span>
+          {!isInfoPopupOpen && (
+            <div 
+              id="info-tooltip" 
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 10px)',
+                right: '-10px',
+                background: currentTheme.cardBg,
+                border: `1px solid ${currentTheme.border}`,
+                borderRadius: '6px',
+                padding: '8px 12px',
+                boxShadow: `0 4px 12px ${currentTheme.shadowColor}`,
+                width: 'max-content',
+                maxWidth: '200px',
+                fontSize: '14px',
+                zIndex: 10,
+                color: currentTheme.text,
+                pointerEvents: 'none',
+                transition: 'opacity 0.2s ease, visibility 0.2s ease',
+                opacity: 0,
+                visibility: 'hidden',
+              }}
+              ref={tooltipRef}
+            >
+              About Artisan Prompt Generator
+            </div>
+          )}
         </button>
       </div>
       
