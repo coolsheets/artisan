@@ -7,6 +7,7 @@ export default function PromptList({ prompts }) {
   const [expandedPrompt, setExpandedPrompt] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [showHistory, setShowHistory] = useState(true);
+  const [infoPopupVisible, setInfoPopupVisible] = useState(false);
   
   // Check if mobile on mount and resize
   useEffect(() => {
@@ -28,6 +29,52 @@ export default function PromptList({ prompts }) {
     setExpandedPrompt(expandedPrompt === index ? null : index);
   };
   
+  const [isInfoPopupOpen, setIsInfoPopupOpen] = useState(false);
+  
+  // Enhanced info popup with proper UI component instead of alert
+  const showInfoPopup = () => {
+    setIsInfoPopupOpen(true);
+  };
+
+  const [fetchError, setFetchError] = useState(null);
+  const [isRetrying, setIsRetrying] = useState(false);
+
+  // Enhanced fetch error handling with retry mechanism
+  const fetchWithErrorHandling = async (url, options, retryCount = 0) => {
+    try {
+      setIsRetrying(retryCount > 0);
+      const response = await fetch(url, options);
+      
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => null);
+        throw new Error(`Request failed with status: ${response.status}${errorText ? ` - ${errorText}` : ''}`);
+      }
+      
+      setFetchError(null);
+      return await response.json();
+    } catch (error) {
+      console.error('Fetch error:', error);
+      
+      const errorMessage = 
+        error.message === 'Failed to fetch' ? 
+          'Network connection issue. Check your internet connection.' :
+          `Error fetching data: ${error.message}`;
+      
+      setFetchError(errorMessage);
+      return null;
+    } finally {
+      setIsRetrying(false);
+    }
+  };
+
+  // Retry mechanism
+  const retryFetch = async (url, options) => {
+    setIsRetrying(true);
+    const result = await fetchWithErrorHandling(url, options, 1);
+    setIsRetrying(false);
+    return result;
+  };
+  
   if (!prompts.length) return null;
   
   return (
@@ -39,6 +86,114 @@ export default function PromptList({ prompts }) {
         width: '100%'
       }}
     >
+      {/* Info Popup */}
+      {isInfoPopupOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000,
+        }}>
+          <div style={{
+            backgroundColor: currentTheme.cardBg,
+            borderRadius: '12px',
+            padding: '24px',
+            maxWidth: '500px',
+            width: '90%',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+            position: 'relative',
+            maxHeight: '80vh',
+            overflow: 'auto',
+          }}>
+            <button
+              onClick={() => setIsInfoPopupOpen(false)}
+              style={{
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                background: 'transparent',
+                border: 'none',
+                fontSize: '24px',
+                cursor: 'pointer',
+                color: currentTheme.secondaryText,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '4px',
+              }}
+              aria-label="Close info popup"
+            >
+              ✕
+            </button>
+            <h2 style={{ marginTop: 0, color: currentTheme.text }}>About Artisan Prompt Generator</h2>
+            <div style={{ color: currentTheme.text, lineHeight: 1.6 }}>
+              <p>Artisan is an AI prompt generator designed to help you create better prompts for AI image and text generation.</p>
+              <p>Features:</p>
+              <ul>
+                <li>Optimizes your basic prompts for better results</li>
+                <li>Breaks down complex requests into atomic steps</li>
+                <li>Supports uploading reference images</li>
+                <li>Stores your prompt history for later reference</li>
+              </ul>
+              <p>To get started, simply type your desired prompt in the input field and click the generate button.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {fetchError && (
+        <div 
+          role="alert"
+          style={{
+            padding: '12px 16px',
+            marginBottom: '20px',
+            backgroundColor: '#ffebee',
+            color: '#c62828',
+            border: '1px solid #ef9a9a',
+            borderRadius: '8px',
+            fontSize: '14px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span role="img" aria-hidden="true" style={{ fontSize: '18px' }}>⚠️</span>
+            <span>{fetchError}</span>
+          </div>
+          <button
+            onClick={() => retryFetch('/api/prompts', { method: 'GET' })}
+            disabled={isRetrying}
+            style={{
+              background: 'transparent',
+              border: '1px solid #c62828',
+              color: '#c62828',
+              padding: '6px 12px',
+              borderRadius: '16px',
+              cursor: isRetrying ? 'default' : 'pointer',
+              fontSize: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              opacity: isRetrying ? 0.7 : 1
+            }}
+          >
+            {isRetrying ? 'Retrying...' : (
+              <>
+                <span role="img" aria-hidden="true">🔄</span>
+                <span>Retry</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
+      
       <div
         style={{
           display: 'flex',
@@ -47,7 +202,7 @@ export default function PromptList({ prompts }) {
           marginBottom: '25px',
           borderBottom: `2px solid ${currentTheme.border}`,
           paddingBottom: '12px',
-          gap: '10px'
+          gap: '10px',
         }}
       >
         <button
@@ -67,7 +222,7 @@ export default function PromptList({ prompts }) {
             fontSize: isMobile ? '20px' : 'inherit',
             width: isMobile ? '44px' : 'auto',
             height: isMobile ? '44px' : 'auto',
-            fontWeight: '500'
+            fontWeight: '500',
           }}
           onMouseEnter={(e) => {
             if (!showHistory) {
@@ -83,23 +238,44 @@ export default function PromptList({ prompts }) {
           }}
           aria-expanded={showHistory}
           aria-controls="history-content"
-          aria-label={showHistory ? "Hide prompts history" : "Show prompts history"}
+          aria-label={showHistory ? 'Hide prompts history' : 'Show prompts history'}
         >
           <span role="img" aria-hidden="true" style={{ fontSize: isMobile ? '1.2em' : '0.9em' }}>📚</span>
           {!isMobile && <span id="history-heading">Generated Prompts History</span>}
         </button>
 
-        {isMobile && showHistory && (
-          <span 
-            style={{
-              fontSize: 'clamp(14px, 3vw, 16px)',
-              color: currentTheme.secondaryText,
-              fontWeight: '500'
-            }}
-          >
-            {prompts.length} {prompts.length === 1 ? 'Prompt' : 'Prompts'}
-          </span>
-        )}
+        <button
+          onClick={showInfoPopup}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: isMobile ? '0' : '8px',
+            padding: isMobile ? '12px' : '10px 16px',
+            backgroundColor: 'transparent',
+            border: `1px solid ${currentTheme.primary}`,
+            borderRadius: isMobile ? '50%' : '24px',
+            color: currentTheme.primary,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            fontSize: isMobile ? '20px' : 'inherit',
+            width: isMobile ? '44px' : 'auto',
+            height: isMobile ? '44px' : 'auto',
+            fontWeight: '500',
+          }}
+          aria-label="Show Info"
+          onMouseEnter={(e) => {
+            e.target.style.backgroundColor = `${currentTheme.primary}20`;
+            e.target.style.transform = 'translateY(-2px)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.backgroundColor = 'transparent';
+            e.target.style.transform = 'translateY(0)';
+          }}
+        >
+          <span role="img" aria-hidden="true" style={{ fontSize: isMobile ? '1.2em' : '0.9em' }}>ℹ️</span>
+          {!isMobile && <span>Show Info</span>}
+        </button>
       </div>
       
       <div 
