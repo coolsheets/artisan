@@ -1,16 +1,33 @@
-// filepath: /home/mfretwell/Documents/Projects/artisan/client/components/PromptList.js
 import { useTheme, getThemeStyles } from '../utils/themeUtils';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function PromptList({ prompts }) {
   const { theme } = useTheme();
   const currentTheme = getThemeStyles(theme);
   const [expandedPrompt, setExpandedPrompt] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showHistory, setShowHistory] = useState(true);
+  
+  // Check if mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setShowHistory(true);
+      }
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   // Toggle expanded state of a prompt
   const togglePrompt = (index) => {
     setExpandedPrompt(expandedPrompt === index ? null : index);
   };
+  
   if (!prompts.length) return null;
   
   return (
@@ -22,28 +39,82 @@ export default function PromptList({ prompts }) {
         width: '100%'
       }}
     >
-      <h2 
-        id="history-heading"
+      <div
         style={{
-          fontSize: 'clamp(18px, 4vw, 24px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
           marginBottom: '25px',
-          color: currentTheme.text,
           borderBottom: `2px solid ${currentTheme.border}`,
           paddingBottom: '12px',
-          display: 'flex',
-          alignItems: 'center',
           gap: '10px'
         }}
       >
-        <span role="img" aria-hidden="true" style={{ fontSize: '0.9em' }}>📚</span>
-        Generated Prompts History
-      </h2>
+        <button
+          onClick={() => setShowHistory(!showHistory)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: isMobile ? '0' : '8px',
+            padding: isMobile ? '12px' : '10px 16px',
+            backgroundColor: showHistory ? currentTheme.primary : 'transparent',
+            border: `1px solid ${currentTheme.primary}`,
+            borderRadius: isMobile ? '50%' : '24px',
+            color: showHistory ? currentTheme.buttonText : currentTheme.primary,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            fontSize: isMobile ? '20px' : 'inherit',
+            width: isMobile ? '44px' : 'auto',
+            height: isMobile ? '44px' : 'auto',
+            fontWeight: '500'
+          }}
+          onMouseEnter={(e) => {
+            if (!showHistory) {
+              e.target.style.backgroundColor = `${currentTheme.primary}20`;
+              e.target.style.transform = 'translateY(-2px)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!showHistory) {
+              e.target.style.backgroundColor = 'transparent';
+              e.target.style.transform = 'translateY(0)';
+            }
+          }}
+          aria-expanded={showHistory}
+          aria-controls="history-content"
+          aria-label={showHistory ? "Hide prompts history" : "Show prompts history"}
+        >
+          <span role="img" aria-hidden="true" style={{ fontSize: isMobile ? '1.2em' : '0.9em' }}>📚</span>
+          {!isMobile && <span id="history-heading">Generated Prompts History</span>}
+        </button>
+
+        {isMobile && showHistory && (
+          <span 
+            style={{
+              fontSize: 'clamp(14px, 3vw, 16px)',
+              color: currentTheme.secondaryText,
+              fontWeight: '500'
+            }}
+          >
+            {prompts.length} {prompts.length === 1 ? 'Prompt' : 'Prompts'}
+          </span>
+        )}
+      </div>
       
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px'
-      }}>
+      <div 
+        id="history-content"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px',
+          height: showHistory ? 'auto' : '0',
+          opacity: showHistory ? 1 : 0,
+          overflow: 'hidden',
+          transition: 'all 0.3s ease',
+          marginTop: showHistory ? '20px' : '0'
+        }}
+      >
         {prompts.map((p, idx) => (
           <div 
             key={idx} 

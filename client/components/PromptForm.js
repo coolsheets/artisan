@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { generatePreamble, generateConcisePreamble, analyzeProblemType, estimateTokens } from '../utils/preambleGenerator';
 import { useTheme, getThemeStyles } from '../utils/themeUtils';
 import ImageUpload from './ImageUpload';
@@ -73,10 +73,23 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
   const [promptSuggestions, setPromptSuggestions] = useState(null);
   const [isVerbose, setIsVerbose] = useState(false);
   const [animateOptimized, setAnimateOptimized] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showDescription, setShowDescription] = useState(false);
 
   // Get current theme
   const { theme } = useTheme();
   const currentTheme = getThemeStyles(theme);
+
+  // Check if mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleOptimize = async () => {
     if (!input.trim()) {
@@ -193,26 +206,37 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
 
   return (
     <div style={{ width: '100%' }}>
+      {/* Top action buttons */}
       <div style={{
         display: 'flex',
         flexWrap: 'wrap',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         alignItems: 'center',
         gap: '10px',
-        marginBottom: '16px'
+        marginBottom: '16px',
+        borderBottom: `1px solid ${currentTheme.border}`,
+        paddingBottom: '16px'
       }}>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ 
+          display: 'flex',
+          gap: '10px',
+          flexWrap: 'nowrap',
+          justifyContent: 'center'
+        }}>
           <button
             onClick={toggleImageUpload}
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              padding: '10px 18px',
-              fontSize: '14px',
+              justifyContent: 'center',
+              gap: isMobile ? '0' : '8px',
+              padding: isMobile ? '12px' : '10px 18px',
+              width: isMobile ? '44px' : 'auto',
+              height: isMobile ? '44px' : 'auto',
+              fontSize: isMobile ? '20px' : '14px',
               backgroundColor: showImageUpload ? currentTheme.primary : 'transparent',
               border: `1px solid ${currentTheme.primary}`,
-              borderRadius: '24px',
+              borderRadius: isMobile ? '50%' : '24px',
               color: showImageUpload ? currentTheme.buttonText : currentTheme.primary,
               cursor: 'pointer',
               transition: 'all 0.2s ease',
@@ -221,19 +245,21 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
             }}
             onMouseEnter={(e) => {
               if (!showImageUpload) {
-                e.target.style.backgroundColor = `${currentTheme.primary}20`; // 20% opacity
+                e.target.style.backgroundColor = `${currentTheme.primary}20`;
+                e.target.style.transform = 'translateY(-2px)';
               }
             }}
             onMouseLeave={(e) => {
               if (!showImageUpload) {
                 e.target.style.backgroundColor = 'transparent';
+                e.target.style.transform = 'translateY(0)';
               }
             }}
             aria-pressed={showImageUpload}
             aria-label={showImageUpload ? "Hide image upload panel" : "Show image upload panel"}
           >
             <span role="img" aria-hidden="true">📷</span>
-            {showImageUpload ? 'Hide Image Upload' : 'Add Image'}
+            {!isMobile && (showImageUpload ? 'Hide Image Upload' : 'Add Image')}
           </button>
           
           <button
@@ -241,12 +267,15 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              padding: '10px 18px',
-              fontSize: '14px',
+              justifyContent: 'center',
+              gap: isMobile ? '0' : '8px',
+              padding: isMobile ? '12px' : '10px 18px',
+              width: isMobile ? '44px' : 'auto',
+              height: isMobile ? '44px' : 'auto',
+              fontSize: isMobile ? '20px' : '14px',
               backgroundColor: isVerbose ? currentTheme.info : 'transparent',
               border: `1px solid ${currentTheme.info}`,
-              borderRadius: '24px',
+              borderRadius: isMobile ? '50%' : '24px',
               color: isVerbose ? currentTheme.buttonText : currentTheme.info,
               cursor: 'pointer',
               transition: 'all 0.2s ease',
@@ -254,18 +283,60 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
             }}
             onMouseEnter={(e) => {
               if (!isVerbose) {
-                e.target.style.backgroundColor = `${currentTheme.info}20`; // 20% opacity
+                e.target.style.backgroundColor = `${currentTheme.info}20`;
+                e.target.style.transform = 'translateY(-2px)';
               }
             }}
             onMouseLeave={(e) => {
               if (!isVerbose) {
                 e.target.style.backgroundColor = 'transparent';
+                e.target.style.transform = 'translateY(0)';
               }
             }}
             aria-pressed={isVerbose}
+            aria-label={isVerbose ? "Switch to concise mode" : "Switch to verbose mode"}
           >
             <span role="img" aria-hidden="true">{isVerbose ? '📝' : '✓'}</span>
-            {isVerbose ? 'Verbose' : 'Concise'}
+            {!isMobile && (isVerbose ? 'Verbose' : 'Concise')}
+          </button>
+
+          <button
+            aria-expanded={showDescription ? "true" : "false"}
+            aria-controls="app-description"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: isMobile ? '0' : '8px',
+              padding: isMobile ? '12px' : '10px 18px',
+              width: isMobile ? '44px' : 'auto',
+              height: isMobile ? '44px' : 'auto',
+              fontSize: isMobile ? '20px' : '14px',
+              backgroundColor: showDescription ? currentTheme.accent : 'transparent',
+              border: `1px solid ${currentTheme.accent}`,
+              borderRadius: isMobile ? '50%' : '24px',
+              color: showDescription ? currentTheme.buttonText : currentTheme.accent,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              fontWeight: '500'
+            }}
+            onClick={() => setShowDescription(!showDescription)}
+            onMouseEnter={(e) => {
+              if (!showDescription) {
+                e.target.style.backgroundColor = `${currentTheme.accent}20`;
+                e.target.style.transform = 'translateY(-2px)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!showDescription) {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.transform = 'translateY(0)';
+              }
+            }}
+            aria-label={showDescription ? "Hide app description" : "Show app description"}
+          >
+            <span role="img" aria-hidden="true">ℹ️</span>
+            {!isMobile && (showDescription ? 'Hide Info' : 'Show Info')}
           </button>
         </div>
         
@@ -395,36 +466,40 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
           e.target.style.boxShadow = `0 2px 6px ${currentTheme.shadowColor}`;
         }}
       />
+      {/* Bottom action buttons */}
       <div style={{ 
         display: 'flex', 
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         alignItems: 'center',
         margin: '20px 0',
         gap: '16px',
-        flexWrap: 'wrap'
+        flexWrap: 'nowrap',
+        borderTop: `1px solid ${currentTheme.border}`,
+        paddingTop: '16px'
       }}>
         <button 
           onClick={handleOptimize} 
           disabled={loading}
           aria-label="Generate optimized prompts"
           style={{
-            padding: 'clamp(12px, 2vw, 16px) clamp(20px, 3.5vw, 28px)',
-            fontSize: 'clamp(14px, 2.5vw, 16px)',
+            padding: isMobile ? '16px' : 'clamp(12px, 2vw, 16px) clamp(20px, 3.5vw, 28px)',
+            fontSize: isMobile ? '20px' : 'clamp(14px, 2.5vw, 16px)',
             backgroundColor: loading ? `${currentTheme.primary}80` : currentTheme.primary,
             color: currentTheme.buttonText,
             border: 'none',
-            borderRadius: '10px',
+            borderRadius: isMobile ? '50%' : '10px',
             cursor: loading ? 'not-allowed' : 'pointer',
             fontWeight: '600',
-            minHeight: '50px',
-            flex: '2 1 0',
-            minWidth: '160px',
+            minHeight: isMobile ? '56px' : '50px',
+            width: isMobile ? '56px' : 'auto',
+            minWidth: isMobile ? '56px' : '160px',
             boxShadow: loading ? 'none' : `0 4px 6px ${currentTheme.shadowColor}`,
             transition: 'all 0.2s ease',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '8px'
+            gap: isMobile ? '0' : '8px',
+            order: isMobile ? 2 : 1
           }}
           onMouseEnter={(e) => {
             if (!loading) {
@@ -450,60 +525,100 @@ export default function PromptForm({ onNewPrompt, onClearAll }) {
                 animation: 'spin 1s linear infinite',
                 display: 'inline-block'
               }} />
-              Processing...
+              {!isMobile && 'Processing...'}
             </>
           ) : (
             <>
               <span role="img" aria-hidden="true">✨</span>
-              Generate Optimized Prompts
+              {!isMobile && 'Generate Optimized Prompts'}
             </>
           )}
         </button>
+
         <button 
           onClick={clearAll} 
           disabled={loading}
           aria-label="Clear all inputs and results"
           style={{ 
-            padding: 'clamp(12px, 2vw, 16px) clamp(20px, 3.5vw, 28px)',
-            fontSize: 'clamp(14px, 2.5vw, 16px)',
+            padding: isMobile ? '16px' : 'clamp(12px, 2vw, 16px) clamp(20px, 3.5vw, 28px)',
+            fontSize: isMobile ? '20px' : 'clamp(14px, 2.5vw, 16px)',
             backgroundColor: currentTheme.cardBg,
             color: currentTheme.text, 
             border: `1px solid ${currentTheme.border}`, 
-            borderRadius: '10px', 
+            borderRadius: isMobile ? '50%' : '10px',
             cursor: loading ? 'not-allowed' : 'pointer',
             opacity: loading ? 0.6 : 1,
             fontWeight: '500',
-            minHeight: '50px',
-            flex: '1 1 0',
-            minWidth: '120px',
+            minHeight: isMobile ? '56px' : '50px',
+            width: isMobile ? '56px' : 'auto',
+            minWidth: isMobile ? '56px' : '120px',
             transition: 'all 0.2s ease',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '8px'
+            gap: isMobile ? '0' : '8px',
+            order: isMobile ? 1 : 2
           }}
           onMouseEnter={(e) => {
             if (!loading) {
               e.target.style.backgroundColor = theme === 'light' ? '#f8f9fa' : '#2b3035';
               e.target.style.borderColor = currentTheme.primary;
+              e.target.style.transform = 'translateY(-2px)';
             }
           }}
           onMouseLeave={(e) => {
             e.target.style.backgroundColor = currentTheme.cardBg;
             e.target.style.borderColor = currentTheme.border;
+            e.target.style.transform = 'translateY(0)';
           }}
         >
           <span role="img" aria-hidden="true">🗑️</span>
-          Clear
+          {!isMobile && 'Clear'}
         </button>
       </div>
       
-      {/* Add @keyframes for spinner animation */}
-      <style jsx>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
+      {/* Description section */}
+      {showDescription && (
+        <div 
+          id="app-description"
+          style={{ 
+            fontSize: 'clamp(14px, 2.5vw, 16px)', 
+            lineHeight: '1.6', 
+            color: currentTheme.secondaryText, 
+            backgroundColor: currentTheme.cardBg,
+            padding: 'clamp(15px, 2.5vw, 25px)',
+            borderRadius: '12px',
+            border: `1px solid ${currentTheme.border}`,
+            width: '100%',
+            boxSizing: 'border-box',
+            textAlign: 'center',
+            opacity: showDescription ? 1 : 0,
+            maxHeight: showDescription ? '300px' : '0',
+            overflow: 'hidden',
+            transform: showDescription ? 'translateY(0)' : 'translateY(-10px)',
+            transition: 'all 0.3s ease-in-out',
+            marginBottom: showDescription ? '25px' : '0',
+            boxShadow: '0 3px 10px rgba(0, 0, 0, 0.05)'
+          }}
+          tabIndex={showDescription ? 0 : -1}
+          role="region"
+          aria-label="Application description"
+        >
+          <p style={{ marginTop: 0 }}>
+            <span role="img" aria-label="sparkles" style={{ fontSize: '1.2em', marginRight: '5px' }}>✨</span> 
+            This application helps you create optimized AI prompts for maximum effectiveness and minimal token usage.
+          </p>
+          <p>
+            Enter your project description or problem statement, and get both a concise optimized version and 
+            step-by-step atomized prompts for complex tasks. Perfect for developers, writers, and AI enthusiasts 
+            who want to craft better prompts for ChatGPT, Claude, and other AI systems.
+          </p>
+          <p style={{ marginBottom: 0, fontSize: '0.9em' }}>
+            <span role="img" aria-label="camera" style={{ marginRight: '5px' }}>📷</span>
+            You can also upload images for visual context-aware prompts!
+          </p>
+        </div>
+      )}
       
       {error && (
         <div style={{ 
