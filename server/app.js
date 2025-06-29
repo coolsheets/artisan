@@ -8,6 +8,7 @@ require('dotenv').config();
 
 const promptsRoute = require('./routes/Prompts');
 const imagesRoute = require('./routes/images');
+const authRoutes = require('./routes/auth');
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Routes
 app.use('/api/prompts', promptsRoute);
 app.use('/api/images', imagesRoute);
+app.use('/api/auth', authRoutes);
 
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB Connected'))
